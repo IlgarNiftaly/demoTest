@@ -1,5 +1,5 @@
 # 1. Maven image istifadə edərək, layihəni build etmək üçün
-FROM maven:3.8.6-openjdk-11 AS build
+FROM maven:3.8.6-openjdk-17 AS build
 
 # 2. İşçi qovluğu təyin edin
 WORKDIR /app
@@ -12,7 +12,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # 5. Final image yaratmaq üçün OpenJDK istifadə edin
-FROM openjdk:11-jre-slim
+FROM openjdk:17-jre-slim
 
 # 6. İşçi qovluğu təyin edin
 WORKDIR /app
