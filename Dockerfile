@@ -1,19 +1,24 @@
-FROM openjdk:17-jdk-slim
+# 1. Maven image istifadə edərək, layihəni build etmək üçün
+FROM maven:3.8.6-openjdk-11 AS build
 
+# 2. İşçi qovluğu təyin edin
 WORKDIR /app
-COPY . /app
 
-RUN apt-get update && apt-get install -y maven
-RUN mvn clean package
+# 3. Layihə fayllarını konteynerə köçürün
+COPY pom.xml .
+COPY src ./src
 
-RUN apt-get update && apt-get install -y wget
-RUN wget https://downloads.apache.org/tomcat/tomcat-10/v10.0.10/bin/apache-tomcat-10.0.10.tar.gz
-RUN tar xzvf apache-tomcat-10.0.10.tar.gz -C /usr/local
-RUN mv /usr/local/apache-tomcat-10.0.10 /usr/local/tomcat
-RUN rm apache-tomcat-10.0.10.tar.gz
+# 4. Maven istifadə edərək, layihəni build edin
+RUN mvn clean package -DskipTests
 
-COPY target/your-app.war /usr/local/tomcat/webapps/
+# 5. Final image yaratmaq üçün OpenJDK istifadə edin
+FROM openjdk:11-jre-slim
 
-EXPOSE 8080
+# 6. İşçi qovluğu təyin edin
+WORKDIR /app
 
-CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
+# 7. Yaradılmış JAR faylını build mərhələsindən final image-a köçürün
+COPY --from=build /app/target/demoTest-1.0-SNAPSHOT.jar demoTest.jar
+
+# 8. Konteyner start edilərkən JAR faylını işə salın
+ENTRYPOINT ["java", "-jar", "demoTest.jar"]
